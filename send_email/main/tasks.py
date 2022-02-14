@@ -3,7 +3,7 @@ from django.core.mail import send_mail
 
 from main.models import Contact
 from main.service import send
-from  src.celery import app
+from  send_email.celery import app
 
 @app.task#Обязательно обвернуть функцию
 def send_spam_email(user_email):#не передаем рез
