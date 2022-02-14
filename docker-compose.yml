@@ -3,7 +3,9 @@ version: "3.1"
 services:
   redis:
     image: redis
-    restart: always
+    privileged: true
+    ports:
+      - 6379:6379
   db:
     image: postgres:13.1
     privileged: true
@@ -14,15 +16,16 @@ services:
       POSTGRES_PASSWORD: password123
       POSTGRES_DB: db
   backend:
-    build: ./src
+    build: ./send_email
     privileged: true
     ports:
       - 8080:8080
     command:
       bash -c "
-        ./wait-for-postgres.sh db &&
-        python manage.py migrate &&
-        gunicorn send_email.wsgi -b 0.0.0.0:8080"
+      python manage.py migrate &&
+      gunicorn send_email.wsgi -b 0.0.0.0:8080 &&
+      celery -A send_email worker -l info
+      "
     depends_on:
       - db
   nginx:
